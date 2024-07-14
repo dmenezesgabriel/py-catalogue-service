@@ -36,8 +36,12 @@ def step_then_product_retrievable(context, sku):
 
 @given('a product with SKU "{sku}" exists')
 def step_given_product_exists(context, sku):
-    step_given_new_product(context, sku)
-    step_when_create_product(context)
+    response = requests.get(f"{context.base_url}/product/{sku}")
+    if response.status_code == 404:
+        step_given_new_product(context, sku)
+        step_when_create_product(context)
+    else:
+        context.product_data = response.json()
 
 
 @when("the product is retrieved")
