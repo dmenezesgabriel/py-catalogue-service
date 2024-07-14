@@ -1,0 +1,62 @@
+volumes:
+  postgres_order_catalog_data:
+  localstack_order_catalogue_data:
+
+networks:
+  order-system-network:
+    external: true
+
+services:
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      - DEFAULT_REGION=${DEFAULT_REGION-us-east-1}
+      - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager}
+      - EDGE_PORT=4566
+      - DATA_DIR=${DATA_DIR-./data}:/tmp/localstack
+      - DEBUG=${DEBUG-}message_handler_service
+      - LOCALSTACK_PERSISTENCE=1
+    volumes:
+      - "localstack_order_catalogue_data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - order-system-network
+
+  postgres-db:
+    image: postgres:16.0-alpine
+    hostname: postgres-db
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env.template
+    volumes:
+      - postgres_order_catalog_data:/var/lib/postgresql/data
+      - ./postgres:/docker-entrypoint-initdb.d
+    networks:
+      - order-system-network
+
+  catalogue-migrations:
+    build: .
+    volumes:
+      - .:/app/
+    env_file:
+      - .env.template
+    command: bash -c "while !</dev/tcp/postgres-db/5432; do sleep 1; done; alembic -c migrations/alembic/alembic.ini upgrade head"
+    networks:
+      - order-system-network
+
+  catalogue:
+    build: .
+    volumes:
+      - .:/app/
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
+    ports:
+      - "8180:8080"
+    env_file:
+      - .env.template
+    networks:
+      - order-system-network
