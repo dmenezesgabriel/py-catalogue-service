@@ -77,10 +77,10 @@ services:
 
   catalogue-bdd:
     build:
-      context: ./bdd
+      context: ./test_bdd
       dockerfile: Dockerfile.bdd
     volumes:
-      - ./bdd:/app/
+      - ./test_bdd:/app/
     command: behave
     networks:
       - catalogue-test-system-network
