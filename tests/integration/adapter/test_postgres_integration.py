@@ -33,7 +33,6 @@ class TestProductPostgresAdapter(unittest.TestCase):
         alembic_cfg.attributes["connection"] = cls.engine.connect()
 
         # command.downgrade(alembic_cfg, "base")
-        # command.downgrade(alembic_cfg, "head")
 
     def setUp(self):
         self.adapter = ProductPostgresAdapter(database_url=config.DATABASE_URL)
@@ -75,11 +74,46 @@ class TestProductPostgresAdapter(unittest.TestCase):
         self.assertEqual(created_product.sku, product_sku)
         self.assertEqual(retrieved_product.sku, product_sku)
 
+    def test_get_product_by_sku(self):
+        product_id = uuid4()
+        price_id = uuid4()
+        inventory_id = uuid4()
+        category_id = uuid4()
+        product_sku = str(random.randint(100, 1000))
+
+        product = Product(
+            id=product_id,
+            version=0,
+            sku=product_sku,
+            name="Test Product",
+            description="This is a test product",
+            image_url="https://example.com/product.jpg",
+            price=Price(id=price_id, value=99.99, discount_percent=0.1),
+            inventory=Inventory(id=inventory_id, quantity=100, reserved=10),
+            category=Category(id=category_id, name="Test Category"),
+        )
+
+        self.adapter.create_product(
+            product=product,
+            on_duplicate_sku=DatabaseException("Duplicate SKU"),
+            on_not_found=DatabaseException("Product not found"),
+        )
+
+        retrieved_product = self.adapter.get_product_by_sku(
+            sku=product_sku,
+            on_not_found=DatabaseException("Product not found"),
+        )
+
+        self.assertIsNotNone(retrieved_product)
+        self.assertEqual(retrieved_product.sku, product_sku)
+        self.assertEqual(retrieved_product.name, "Test Product")
+
     def test_update_product(self):
         product_id = uuid4()
         price_id = uuid4()
         inventory_id = uuid4()
         category_id = uuid4()
+        new_category_id = uuid4()
         product_sku = str(random.randint(100, 1000))
 
         product = Product(
@@ -109,7 +143,7 @@ class TestProductPostgresAdapter(unittest.TestCase):
             image_url="https://example.com/updated_product.jpg",
             price=Price(id=price_id, value=59.99, discount_percent=0.1),
             inventory=Inventory(id=inventory_id, quantity=60, reserved=10),
-            category=Category(id=category_id, name="Updated Category"),
+            category=Category(id=new_category_id, name="Updated Category"),
         )
 
         updated_product_result = self.adapter.update_product(
