@@ -31,5 +31,7 @@ init-catalogue: |
 	docker compose up -d catalogue
 
 test-catalogue:
-	docker compose -f docker-compose-test.yaml run --rm catalogue-test
+	docker compose -f docker-compose-test.yaml run --rm catalogue-test && \
+	docker compose -f docker-compose-test.yaml down -v \
+
 
