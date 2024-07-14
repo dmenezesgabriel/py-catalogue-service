@@ -3,8 +3,8 @@ volumes:
   localstack_order_catalogue_data:
 
 networks:
-  order-system-network:
-    external: true
+  catalogue-order-system-network:
+    external: false
 
 services:
   localstack:
@@ -24,7 +24,7 @@ services:
       - "localstack_order_catalogue_data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
-      - order-system-network
+      - catalogue-order-system-network
 
   postgres-db:
     image: postgres:16.0-alpine
@@ -37,7 +37,7 @@ services:
       - postgres_order_catalog_data:/var/lib/postgresql/data
       - ./postgres:/docker-entrypoint-initdb.d
     networks:
-      - order-system-network
+      - catalogue-order-system-network
 
   catalogue-migrations:
     build: .
@@ -47,7 +47,7 @@ services:
       - .env.template
     command: bash -c "while !</dev/tcp/postgres-db/5432; do sleep 1; done; alembic -c migrations/alembic/alembic.ini upgrade head"
     networks:
-      - order-system-network
+      - catalogue-order-system-network
 
   catalogue:
     build: .
@@ -59,4 +59,14 @@ services:
     env_file:
       - .env.template
     networks:
-      - order-system-network
+      - catalogue-order-system-network
+
+  catalogue-bdd:
+    build:
+      context: ./bdd
+      dockerfile: Dockerfile.bdd
+    volumes:
+      - ./bdd:/app/
+    command: behave
+    networks:
+      - catalogue-order-system-network

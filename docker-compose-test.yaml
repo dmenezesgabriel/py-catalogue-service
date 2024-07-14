@@ -3,7 +3,7 @@ volumes:
   localstack_test_catalogue_data:
 
 networks:
-  catalogue-system-network:
+  catalogue-test-system-network:
     external: false
 
 services:
@@ -24,7 +24,7 @@ services:
       - "localstack_test_catalogue_data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
-      - catalogue-system-network
+      - catalogue-test-system-network
 
   postgres-catalogue-test:
     image: postgres:16.0-alpine
@@ -37,7 +37,7 @@ services:
       - postgres_test_catalog_data:/var/lib/postgresql/data
       - ./postgres:/docker-entrypoint-initdb.d
     networks:
-      - catalogue-system-network
+      - catalogue-test-system-network
 
   catalogue-test:
     build:
@@ -51,4 +51,4 @@ services:
     env_file:
       - .env.test.template
     networks:
-      - catalogue-system-network
+      - catalogue-test-system-network

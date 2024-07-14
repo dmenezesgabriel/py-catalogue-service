@@ -17,7 +17,7 @@ init-postgres: |
 	docker compose run --rm catalogue-migrations && \
 	sleep 2s && \
 	echo "check tables" && \
-	docker compose exec postgres-db psql -U postgres -c "\dt catalogue.*"
+	docker compose exec postgres-db psql -U catalogue_app -d catalogue -c "\dt"
 
 init-localstack: |
 	echo "deploy container" && \
@@ -34,3 +34,10 @@ init-catalogue: |
 test-catalogue:
 	docker compose -f docker-compose-test.yaml run --rm catalogue-test && \
 	docker compose -f docker-compose-test.yaml down -v \
+
+test-catalogue-bdd:
+	make init-postgres && \
+	make init-localstack && \
+	make init-catalogue && \
+	docker compose run --rm catalogue-bdd && \
+	docker compose down -v
