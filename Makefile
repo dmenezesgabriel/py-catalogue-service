@@ -1,43 +1,54 @@
 clean: |
 	sh scripts/clean.sh
 
-create-catalogue-migration: |
+create-catalogue-migration-%: |
 	@read -p "Enter migration message: " MESSAGE; \
-	docker compose run --rm catalogue-migrations /bin/bash -c \
+	docker compose -f docker-compose-$*.yaml \
+	run --rm migrations-catalogue-$* /bin/bash -c \
 	"alembic -c migrations/alembic/alembic.ini revision --autogenerate -m '$$MESSAGE'"
 
-apply-catalogue-migrations: |
-	docker compose run --rm catalogue-migrations
+apply-catalogue-migrations-%: |
+	docker compose run --rm migrations-catalogue-$*
 
-init-postgres: |
+init-postgres-%: |
 	echo "deploy container" && \
-	docker compose up -d postgres-db && \
+	docker compose -f docker-compose-$*.yaml \
+	up -d postgres-catalogue-$* && \
 	sleep 2s && \
 	echo "apply migrations" && \
-	docker compose run --rm catalogue-migrations && \
+	docker compose -f docker-compose-$*.yaml \
+	run --rm migrations-catalogue-$* && \
 	sleep 2s && \
 	echo "check tables" && \
-	docker compose exec postgres-db psql -U catalogue_app -d catalogue -c "\dt"
+	docker compose -f docker-compose-$*.yaml \
+	exec postgres-catalogue-$* psql -U catalogue_app -d catalogue -c "\dt"
 
-init-localstack: |
+init-localstack-%: |
 	echo "deploy container" && \
-	docker compose up -d localstack && \
+	docker compose -f docker-compose-$*.yaml \
+	up -d localstack-catalogue-$* && \
 	sleep 2s && \
 	echo "apply terraform" && \
 	terraform -chdir=infra/terraform apply --auto-approve && \
 	echo "validate resources" && \
-	docker compose exec localstack awslocal sqs list-queues
+	docker compose -f docker-compose-$*.yaml \
+	exec localstack-catalogue-$* awslocal sqs list-queues
 
-init-catalogue: |
-	docker compose up -d catalogue
+init-catalogue-%: |
+	make init-postgres-$* && \
+	make init-localstack-$* && \
+	docker compose -f docker-compose-$*.yaml \
+	up -d catalogue-app-$*
+
+down-catalogue-%: |
+	docker compose -f docker-compose-$*.yaml down -v
 
 test-catalogue:
-	docker compose -f docker-compose-test.yaml run --rm catalogue-test && \
+	docker compose -f docker-compose-test.yaml run --rm catalogue-tests && \
 	docker compose -f docker-compose-test.yaml down -v \
 
 test-catalogue-bdd:
-	make init-postgres && \
-	make init-localstack && \
-	make init-catalogue && \
-	docker compose run --rm catalogue-bdd && \
-	docker compose down -v
+	make init-catalogue-test && \
+	docker compose -f docker-compose-test.yaml \
+	run --rm catalogue-bdd && \
+	make down-catalogue-test

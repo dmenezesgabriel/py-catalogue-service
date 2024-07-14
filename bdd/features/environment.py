@@ -1,2 +1,5 @@
+import os
+
+
 def before_all(context):
-    context.base_url = "http://catalogue:8180"
+    context.base_url = os.environ["BASE_URL"]

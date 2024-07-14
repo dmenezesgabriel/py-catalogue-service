@@ -1,55 +1,52 @@
 volumes:
-  postgres_order_catalog_data:
-  localstack_order_catalogue_data:
+  postgres_catalogue_dev:
+  localstack_catalogue_dev:
 
 networks:
   catalogue-order-system-network:
     external: false
 
 services:
-  localstack:
+  localstack-catalogue-dev:
     container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
     image: localstack/localstack:latest
     ports:
       - "127.0.0.1:4566:4566"
       - "127.0.0.1:4510-4559:4510-4559"
     environment:
-      - DEFAULT_REGION=${DEFAULT_REGION-us-east-1}
       - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager}
-      - EDGE_PORT=4566
-      - DATA_DIR=${DATA_DIR-./data}:/tmp/localstack
-      - DEBUG=${DEBUG-}message_handler_service
+      - DEBUG=${DEBUG-}
       - LOCALSTACK_PERSISTENCE=1
     volumes:
-      - "localstack_order_catalogue_data:/var/lib/localstack"
+      - "localstack_catalogue_dev:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - catalogue-order-system-network
 
-  postgres-db:
+  postgres-catalogue-dev:
     image: postgres:16.0-alpine
-    hostname: postgres-db
+    hostname: postgres-catalogue-dev
     ports:
       - "5432:5432"
     env_file:
       - .env.template
     volumes:
-      - postgres_order_catalog_data:/var/lib/postgresql/data
+      - postgres_catalogue_dev:/var/lib/postgresql/data
       - ./postgres:/docker-entrypoint-initdb.d
     networks:
       - catalogue-order-system-network
 
-  catalogue-migrations:
+  migrations-catalogue-dev:
     build: .
     volumes:
       - .:/app/
     env_file:
       - .env.template
-    command: bash -c "while !</dev/tcp/postgres-db/5432; do sleep 1; done; alembic -c migrations/alembic/alembic.ini upgrade head"
+    command: bash -c "while !</dev/tcp/postgres-catalogue-dev/5432; do sleep 1; done; alembic -c migrations/alembic/alembic.ini upgrade head"
     networks:
       - catalogue-order-system-network
 
-  catalogue:
+  catalogue-app-dev:
     build: .
     volumes:
       - .:/app/
@@ -58,15 +55,8 @@ services:
       - "8180:8080"
     env_file:
       - .env.template
-    networks:
-      - catalogue-order-system-network
-
-  catalogue-bdd:
-    build:
-      context: ./bdd
-      dockerfile: Dockerfile.bdd
-    volumes:
-      - ./bdd:/app/
-    command: behave
+    depends_on:
+      - postgres-catalogue-dev
+      - localstack-catalogue-dev
     networks:
       - catalogue-order-system-network

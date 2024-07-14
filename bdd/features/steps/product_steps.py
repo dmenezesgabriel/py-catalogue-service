@@ -9,7 +9,7 @@ def step_given_new_product(context, sku):
         "name": "Test Product",
         "description": "This is a test product",
         "image_url": "http://example.com/image.jpg",
-        "price": {"value": 100.0, "discount_percent": 10.0},
+        "price": {"value": 100.0, "discount_percent": 0.1},
         "inventory": {"quantity": 50, "reserved": 5},
         "category": {"name": "Test Category"},
     }
