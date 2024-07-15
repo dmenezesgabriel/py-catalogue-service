@@ -36,10 +36,22 @@ This microservice is built upon the hexagonal architecture and aggregate develop
 
 ## Tests
 
-- **Run tests**:
+- **Unit + Integration**:
 
 ```sh
 make test-catalogue
+```
+
+- **Component**:
+
+```sh
+make init-catalogue-bdd
+```
+
+- **Load**:
+
+```sh
+make init-catalogue-load
 ```
 
 ## Development
@@ -47,29 +59,29 @@ make test-catalogue
 1. **Init Database (with migrations)**:
 
 ```sh
-make init-postgres
+make init-postgres-dev
 ```
 
 2. **Init Local stack(AWS Mock)**:
 
 ```sh
-make init-localstack
+make init-localstack-dev
 ```
 
 3. **Init Catalogue service**:
 
 ```sh
-make init-catalogue
+make init-catalogue-dev
 ```
 
 - **Create catalogue migrations**:
 
 ```sh
-make create-catalogue-migration
+make create-catalogue-migration-dev
 ```
 
 - **Apply catalogue migrations**:
 
 ```sh
-make apply-catalogue-migrations
+make apply-catalogue-migrations-dev
 ```
