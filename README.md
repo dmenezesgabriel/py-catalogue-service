@@ -36,6 +36,8 @@ This microservice is built upon the hexagonal architecture and aggregate develop
 
 ## Tests
 
+Install allure to see allure reports with `npm install -g allure-commandline`
+
 - **Unit + Integration**:
 
 ```sh
@@ -52,6 +54,12 @@ make init-catalogue-bdd
 
 ```sh
 make init-catalogue-load
+```
+
+- **Serve allure results**:
+
+```
+npx allure serve allure-results
 ```
 
 ## Development
