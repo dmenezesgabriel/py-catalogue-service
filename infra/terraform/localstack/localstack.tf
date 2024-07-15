@@ -69,3 +69,14 @@ resource "aws_sqs_queue" "main" {
     Environment = "development"
   }
 }
+
+resource "aws_ssm_parameter" "db_credentials" {
+  for_each = var.postgres_catalogue_credentials
+  name     = "/py-order-system-catalogue/postgres/catalogue/${each.key}"
+  type     = each.value.type
+  value    = each.value.value
+
+  tags = {
+    environment = "development"
+  }
+}

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.adapter.http_api import HTTPApiAdapter
+from src.adapter.parameter_store import SSMParameterStoreAdapter
 from src.adapter.postgres import ProductPostgresAdapter
 from src.adapter.sqs import SQSAdapter
 from src.config import get_config
@@ -12,8 +13,17 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_event():
+    parameter_store = SSMParameterStoreAdapter(
+        endpoint_url=config.ENDPOINT_URL,
+        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+        region_name=config.REGION_NAME,
+    )
+
+    config.set_parameter_store(parameter_store=parameter_store)
+
     product_postgres_adapter = ProductPostgresAdapter(
-        database_url=config.DATABASE_URL
+        database_url=config.get_database_url()
     )
     sqs_adapter = SQSAdapter(
         queue_name=config.QUEUE_NAME,

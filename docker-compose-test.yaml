@@ -67,7 +67,10 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - .:/app/
-    command: python -m pytest tests/unit -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
+    command: |
+      python -m \
+      pytest tests/unit -s -vv -x \
+      --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
     env_file:
       - .env.test.template
     networks:
@@ -79,9 +82,12 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - .:/app/
-    command: python -m pytest tests/integration -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
+    command: |
+      bash -c \
+      "while !</dev/tcp/postgres-catalogue-test/5432; do sleep 1; done; python -m pytest tests/integration -s -vv --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results"
     depends_on:
       - postgres-catalogue-test
+      # - localstack-catalogue-test
     env_file:
       - .env.test.template
     networks:
@@ -105,6 +111,9 @@ services:
       dockerfile: Dockerfile.load
     volumes:
       - ./test_load:/app/
-    command: locust -f locustfile.py --host http://catalogue-app-test:8080 -u 100 -r 10 --run-time 1m --headless
+    command: |
+      locust -f locustfile.py \
+      --host http://catalogue-app-test:8080 \
+      -u 100 -r 10 --run-time 1m --headless
     networks:
       - catalogue-test-system-network

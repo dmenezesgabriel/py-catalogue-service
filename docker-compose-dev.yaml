@@ -14,7 +14,7 @@ services:
       - "127.0.0.1:4566:4566"
       - "127.0.0.1:4510-4559:4510-4559"
     environment:
-      - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager}
+      - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager,ssm}
       - DEBUG=${DEBUG-}
       - LOCALSTACK_PERSISTENCE=1
     volumes:
@@ -57,6 +57,5 @@ services:
       - .env.dev.template
     depends_on:
       - postgres-catalogue-dev
-      - localstack-catalogue-dev
     networks:
       - catalogue-order-system-network
