@@ -28,8 +28,10 @@ init-localstack-%:
 	docker compose -f docker-compose-$*.yaml \
 	up -d localstack-catalogue-$* && \
 	sleep 2s && \
+	echo "init terraform" && \
+	terraform -chdir=infra/terraform/localstack init && \
 	echo "apply terraform" && \
-	terraform -chdir=infra/terraform apply --auto-approve && \
+	terraform -chdir=infra/terraform/localstack apply --auto-approve && \
 	echo "validate resources" && \
 	docker compose -f docker-compose-$*.yaml \
 	exec localstack-catalogue-$* awslocal sqs list-queues
