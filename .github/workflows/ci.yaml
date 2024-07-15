@@ -5,10 +5,23 @@ on:
   pull_request:
 
 jobs:
-  tests:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build image
-        run: make test-catalogue
+      - name: Run unit tests
+        run: make catalogue-unit-tests
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run integration tests
+        run: make catalogue-integration-tests
+
+  component-tests:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Run component tests
+        run: make init-catalogue-bdd

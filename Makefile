@@ -45,8 +45,11 @@ init-catalogue-%:
 down-catalogue-%:
 	docker compose -f docker-compose-$*.yaml down -v
 
-test-catalogue:
-	docker compose -f docker-compose-test.yaml run --rm catalogue-tests && \
+catalogue-unit-tests:
+	docker compose -f docker-compose-test.yaml run --rm catalogue-unit-tests
+
+catalogue-integration-tests:
+	docker compose -f docker-compose-test.yaml run --rm catalogue-integration-tests && \
 	docker compose -f docker-compose-test.yaml down -v \
 
 start-catalogue-bdd:

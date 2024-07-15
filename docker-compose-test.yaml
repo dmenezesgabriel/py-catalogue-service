@@ -61,13 +61,25 @@ services:
     networks:
       - catalogue-test-system-network
 
-  catalogue-tests:
+  catalogue-unit-tests:
     build:
       context: .
       dockerfile: Dockerfile.test
     volumes:
       - .:/app/
-    command: python -m pytest -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
+    command: python -m pytest tests/unit -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
+    env_file:
+      - .env.test.template
+    networks:
+      - catalogue-test-system-network
+
+  catalogue-integration-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app/
+    command: python -m pytest tests/integration -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
     depends_on:
       - postgres-catalogue-test
     env_file:
