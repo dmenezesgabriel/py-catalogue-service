@@ -86,3 +86,13 @@ services:
       - catalogue-test-system-network
     environment:
       - BASE_URL=http://catalogue-app-test:8080
+
+  catalogue-load:
+    build:
+      context: ./test_load
+      dockerfile: Dockerfile.load
+    volumes:
+      - ./test_load:/app/
+    command: locust -f locustfile.py --host http://catalogue-app-test:8080 -u 100 -r 10 --run-time 1m --headless
+    networks:
+      - catalogue-test-system-network

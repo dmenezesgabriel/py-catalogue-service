@@ -57,3 +57,12 @@ init-catalogue-bdd:
 	make init-catalogue-test && \
 	make start-catalogue-bdd && \
 	make down-catalogue-test
+
+start-catalogue-load:
+	docker compose -f docker-compose-test.yaml \
+	run --rm catalogue-load
+
+init-catalogue-load:
+	make init-catalogue-test && \
+	make start-catalogue-load && \
+	make down-catalogue-test
