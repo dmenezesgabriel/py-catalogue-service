@@ -71,3 +71,6 @@ init-catalogue-load:
 	make init-catalogue-test && \
 	make start-catalogue-load && \
 	make down-catalogue-test
+
+build-catalogue-prod:
+	docker build --no-cache -t py-order-system-catalogue .
