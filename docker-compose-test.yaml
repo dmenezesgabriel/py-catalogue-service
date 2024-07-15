@@ -67,7 +67,7 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - .:/app/
-    command: python -m pytest -s -vv -x --cov --cov-report=html:/app/reports/coverage
+    command: python -m pytest -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
     depends_on:
       - postgres-catalogue-test
     env_file:

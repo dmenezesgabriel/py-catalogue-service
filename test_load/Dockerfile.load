@@ -2,7 +2,7 @@
 # BUILDER #
 ###########
 
-FROM python:3.9-slim-bookworm as builder
+FROM python:3.9-slim-bookworm AS builder
 
 # Prevents Python from writing pyc files to disc (equivalent to python -B option)
 ENV PYTHONDONTWRITEBYTECODE=1
