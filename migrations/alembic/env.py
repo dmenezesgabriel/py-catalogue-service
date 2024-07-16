@@ -3,13 +3,27 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from src.adapter.parameter_store import SSMParameterStoreAdapter
 from src.adapter.postgres import ProductPostgresAdapter
+from src.config import get_config
 
-CATALOGUE_DATABASE_URL = os.environ["CATALOGUE_DATABASE_URL"]
+app_config = get_config()
+
+database_url = os.environ["DATABASE_URL"]
+if app_config.ENVIRONMENT != "test":
+    parameter_store = SSMParameterStoreAdapter(
+        endpoint_url=app_config.ENDPOINT_URL,
+        aws_access_key_id=app_config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=app_config.AWS_SECRET_ACCESS_KEY,
+        region_name=app_config.REGION_NAME,
+    )
+    app_config.set_parameter_store(parameter_store=parameter_store)
+    database_url = app_config.get_database_url()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("DATABASE_URL", CATALOGUE_DATABASE_URL)
+config.set_main_option("DATABASE_URL", database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -20,7 +34,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-product_postgres_adapter = ProductPostgresAdapter(CATALOGUE_DATABASE_URL)
+product_postgres_adapter = ProductPostgresAdapter(database_url)
 target_metadata = product_postgres_adapter.metadata
 
 # other values from the config, defined by the needs of env.py,

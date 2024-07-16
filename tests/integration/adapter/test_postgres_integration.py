@@ -1,6 +1,8 @@
 import logging
+import os
 import random
 import unittest
+from typing import Optional
 from uuid import uuid4
 
 from alembic import command
@@ -11,16 +13,28 @@ from src.adapter.postgres import ProductPostgresAdapter
 from src.config import get_config
 from src.domain.entities import Category, Product
 from src.domain.value_objects import Inventory, Price
+from src.port.parameter_store import ParameterStore
 
 config = get_config()
 logger = logging.getLogger("app")
+
+
+class MockParameterStore(ParameterStore):
+    def get_parameter(self, name: str) -> Optional[str]:
+        return os.getenv(name)
+
+    def get_database_url(self):
+        return self.get_parameter("DATABASE_URL")
 
 
 class TestProductPostgresAdapter(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.engine = create_engine(config.DATABASE_URL)
+        parameter_store = MockParameterStore()
+        config.set_parameter_store(parameter_store=parameter_store)
+        database_url = config.get_database_url()
+        cls.engine = create_engine(database_url)
         alembic_cfg = Config("migrations/alembic/alembic.ini")
         alembic_cfg.set_main_option("script_location", "migrations/alembic")
         alembic_cfg.attributes["connection"] = cls.engine.connect()
@@ -35,7 +49,8 @@ class TestProductPostgresAdapter(unittest.TestCase):
         # command.downgrade(alembic_cfg, "base")
 
     def setUp(self):
-        self.adapter = ProductPostgresAdapter(database_url=config.DATABASE_URL)
+        database_url = config.get_database_url()
+        self.adapter = ProductPostgresAdapter(database_url=database_url)
 
     def tearDown(self):
         pass

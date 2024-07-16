@@ -15,7 +15,7 @@ services:
       - "127.0.0.1:4510-4559:4510-4559"
     environment:
       - DEFAULT_REGION=${DEFAULT_REGION-us-east-1}
-      - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager}
+      - SERVICES=${SERVICES-lambda,s3,apigateway,cloudwatch,dynamodb,sqs,kinesis,serverless,secretsmanager,ssm}
       - EDGE_PORT=4566
       - DATA_DIR=${DATA_DIR-./data}:/tmp/localstack
       - DEBUG=${DEBUG-}message_handler_service
@@ -68,9 +68,7 @@ services:
     volumes:
       - .:/app/
     command: |
-      python -m \
-      pytest tests/unit -s -vv -x \
-      --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
+      python -m pytest tests/unit -s -vv -x --cov --cov-report=html:/app/reports/coverage --alluredir /app/allure-results
     env_file:
       - .env.test.template
     networks:

@@ -8,8 +8,8 @@ from src.utils.singleton import Singleton
 
 
 class Config(metaclass=Singleton):
+    ENVIRONMENT = "local"
     LOG_LEVEL = "DEBUG"
-    DATABASE_URL = os.getenv("CATALOGUE_DATABASE_URL")
     QUEUE_NAME = os.getenv("QUEUE_NAME", "product-update")
     ENDPOINT_URL = os.getenv("ENDPOINT_URL")
     REGION_NAME = os.getenv("REGION_NAME", "us-east-1")
@@ -23,7 +23,7 @@ class Config(metaclass=Singleton):
         self._parameter_store = parameter_store
 
     def get_database_url(self):
-        self._parameter_store.get_database_url()
+        return self._parameter_store.get_database_url()
 
 
 class LocalConfig(Config):
@@ -31,18 +31,20 @@ class LocalConfig(Config):
 
 
 class TestConfig(Config):
-    pass
+    ENVIRONMENT = "test"
 
 
 class DevelopmentConfig(Config):
-    pass
+    ENVIRONMENT = "development"
 
 
 class StagingConfig(Config):
+    ENVIRONMENT = "staging"
     LOG_LEVEL = "INFO"
 
 
 class ProductionConfig(Config):
+    ENVIRONMENT = "production"
     LOG_LEVEL = "INFO"
 
 

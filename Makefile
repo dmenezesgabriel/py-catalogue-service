@@ -11,28 +11,21 @@ apply-catalogue-migrations-%:
 	docker compose run --rm migrations-catalogue-$*
 
 init-postgres-%:
-	echo "deploy container" && \
 	docker compose -f docker-compose-$*.yaml \
 	up -d postgres-catalogue-$* && \
 	sleep 2s && \
-	echo "apply migrations" && \
 	docker compose -f docker-compose-$*.yaml \
 	run --rm migrations-catalogue-$* && \
 	sleep 2s && \
-	echo "check tables" && \
 	docker compose -f docker-compose-$*.yaml \
 	exec postgres-catalogue-$* psql -U catalogue_app -d catalogue -c "\dt"
 
 init-localstack-%:
-	echo "deploy container" && \
 	docker compose -f docker-compose-$*.yaml \
 	up -d localstack-catalogue-$* && \
 	sleep 2s && \
-	echo "init terraform" && \
-	terraform -chdir=infra/terraform/localstack init && \
-	echo "apply terraform" && \
-	terraform -chdir=infra/terraform/localstack apply --auto-approve && \
-	echo "validate resources" && \
+	terraform -chdir=infra/terraform/localstack init -var-file=environments/$*/$*.tfvars && \
+	terraform -chdir=infra/terraform/localstack apply -var-file=environments/$*/$*.tfvars --auto-approve && \
 	docker compose -f docker-compose-$*.yaml \
 	exec localstack-catalogue-$* awslocal sqs list-queues
 
